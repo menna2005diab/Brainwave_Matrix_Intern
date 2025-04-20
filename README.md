@@ -1,7 +1,7 @@
 # Brainwave_Matrix_Intern
 #include <iostream>
 using namespace std;
-//makeing an accounts class
+//making an accounts class
 class Account{
     private:
 int accountNumber;
