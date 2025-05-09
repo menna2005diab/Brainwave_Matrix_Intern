@@ -1,0 +1,177 @@
+#include <iostream>
+#include <vector>
+using namespace std;
+
+class Account {
+private:
+    int accountNumber;
+    int balance;
+    int pin;
+
+public:
+    Account(int accNum, int userPin, int initialBalance = 2000)
+        : accountNumber(accNum), pin(userPin), balance(initialBalance) {}
+
+    int getAccountNumber() const {return accountNumber;}
+    int getPin() const { return pin; }
+
+    void checkBalance() {
+        cout <<"Your current balance is $"<<balance << endl;
+    }
+
+    void deposit(int amount) {
+        if (amount>0) {
+            balance+=amount;
+            cout <<"Deposited $"<<amount<<". New balance: $" << balance << endl;
+        } else {
+            cout<<"Invalid deposit amount."<<endl;
+        }
+    }
+
+    void withdraw(int amount) {
+        if (amount <= 0||amount>balance) {
+            cout <<"Invalid or insufficient funds"<<endl;
+        } else {
+            balance-=amount;
+            cout << "Withdrew $" <<amount <<". New balance: $"<<balance << endl;
+        }
+    }
+
+    void transfer(int amount, Account &receiver) {
+        if (amount<=0||amount > balance) {
+            cout<<"Invalid or insufficient funds."<<endl;
+        } else {
+            balance-=amount;
+            receiver.balance+= amount;
+            cout <<"Transferred $" << amount << " to Account " << receiver.getAccountNumber() << ".\n";
+        }
+    }
+};
+
+vector<Account> accounts;
+
+Account* login(int accNum, int pin) {
+    for (auto &acc : accounts) {
+        if (acc.getAccountNumber() == accNum && acc.getPin() == pin)
+            return &acc;
+    }
+    return nullptr;
+}
+
+bool accountExists(int accNum) {
+    for (auto &acc : accounts) {
+        if (acc.getAccountNumber() == accNum)
+            return true;
+    }
+    return false;
+}
+
+void createAccount() {
+    int accNum, pin;
+    cout << "Enter a new account number: ";
+    cin >> accNum;
+
+    if (accountExists(accNum)) {
+        cout << "Account number already exists. Try a different one.\n";
+        return;
+    }
+
+    cout << "Set a 4-digit PIN: ";
+    cin >> pin;
+
+    accounts.emplace_back(accNum, pin);
+    cout << "Account created successfully!\n";
+}
+
+void process(Account& userAccount) {
+    int choice;
+    do {
+        cout << "\n--- Banking Menu ---\n"
+             << "1 - Check Balance\n"
+             << "2 - Deposit\n"
+             << "3 - Withdraw\n"
+             << "4 - Transfer\n"
+             << "5 - Logout\n"
+             << "Choose an option: ";
+        cin >> choice;
+
+        int amount, receiverNum;
+        Account* receiver = nullptr;
+
+        switch (choice) {
+        case 1:
+            userAccount.checkBalance();
+            break;
+        case 2:
+            cout << "Enter amount to deposit: ";
+            cin >> amount;
+            userAccount.deposit(amount);
+            break;
+        case 3:
+            cout << "Enter amount to withdraw: ";
+            cin >> amount;
+            userAccount.withdraw(amount);
+            break;
+        case 4:
+            cout << "Enter receiver account number: ";
+            cin >> receiverNum;
+            for (auto &acc : accounts) {
+                if (acc.getAccountNumber() == receiverNum && &acc != &userAccount) {
+                    receiver = &acc;
+                    break;
+                }
+            }
+            if (receiver) {
+                cout << "Enter amount to transfer: ";
+                cin >> amount;
+                userAccount.transfer(amount, *receiver);
+            } else {
+                cout << "Receiver account not found.\n";
+            }
+            break;
+        case 5:
+            cout << "Logging out...\n";
+            break;
+        default:
+            cout << "Invalid choice.\n";
+        }
+
+    } while (choice != 5);
+}
+
+int main() {
+    while (true) {
+        int mainChoice;
+        cout << "\n--- Welcome to the Banking System ---\n"
+             << "1 - Create Account\n"
+             << "2 - Login\n"
+             << "3 - Exit\n"
+             << "Choose an option: ";
+        cin >> mainChoice;
+
+        if (mainChoice == 1) {
+            createAccount();
+        } else if (mainChoice == 2) {
+            int accNum, pin;
+            cout << "Enter account number: ";
+            cin >> accNum;
+            cout << "Enter PIN: ";
+            cin >> pin;
+
+            Account* user = login(accNum, pin);
+            if (user) {
+                cout << "Login successful.\n";
+                process(*user);
+            } else {
+                cout << "Invalid account or PIN.\n";
+            }
+        } else if (mainChoice == 3) {
+            cout << "Goodbye!\n";
+            break;
+        } else {
+            cout << "Invalid choice.\n";
+        }
+    }
+
+    return 0;
+}
